@@ -10,16 +10,21 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0"
+        "php": ">=7.0.0"
     },
     "require-dev": {
+        "phpunit/phpunit": "~6.0",
         "aura/di": "~2.0"
     },
     "autoload": {
         "psr-4": {
-            "Blueprint\\Tests\\": "tests/src/",
             "Blueprint\\_Config\\": "config/",
             "Blueprint\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Blueprint\\Tests\\": "tests/"
         }
     }
 }

@@ -3,6 +3,6 @@ namespace Blueprint;
 
 interface ITemplate
 {
-    public function render();
+    public function render(): string;
     public function assign($key, $value = null);
 }

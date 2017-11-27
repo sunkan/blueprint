@@ -1,13 +1,13 @@
 <?php
 namespace Blueprint\Helper;
 
-use Blueprint\ITemplate;
+use Blueprint\TemplateInterface;
 
-abstract class AHelper implements IHelper
+abstract class AHelperInterface implements HelperInterface
 {
     protected $template_engine;
 
-    public function setTemplate(ITemplate $template)
+    public function setTemplate(TemplateInterface $template)
     {
         $this->template_engine = $template;
         return $this;
@@ -20,6 +20,6 @@ abstract class AHelper implements IHelper
 
     public function hasTemplate()
     {
-        return $this->template_engine instanceof ITemplate;
+        return $this->template_engine instanceof TemplateInterface;
     }
 }
