@@ -13,11 +13,13 @@ class ResolverTest extends TestCase
         /** @var TemplateInterface $engine */
         $engine = $this->getMockForAbstractClass(TemplateInterface::class);
 
-        $clb = function() {
+        $clb = function () {
             return 'clb return';
         };
 
-        $resolver = new Resolver(function(){});
+        $resolver = new Resolver(function () {
+            return null;
+        });
         $resolver->addFunction('test', $clb);
 
         /** @var ClosureHelper $clbHelper */
@@ -38,7 +40,9 @@ class ResolverTest extends TestCase
         $helper->method('run')->will($this->returnValue('test-class-runner'));
         /** @var AbstractHelper $helper */
 
-        $resolver = new Resolver(function(){});
+        $resolver = new Resolver(function () {
+            return null;
+        });
         $resolver->addClass($helper);
 
         $returnedHelper = $resolver->resolve('test', $engine);
@@ -54,7 +58,9 @@ class ResolverTest extends TestCase
         /** @var TemplateInterface $engine */
         $engine = $this->getMockForAbstractClass(TemplateInterface::class);
 
-        $resolver = new Resolver(function(){});
+        $resolver = new Resolver(function () {
+            return null;
+        });
         $resolver->resolve('test', $engine);
     }
 
@@ -68,7 +74,7 @@ class ResolverTest extends TestCase
         $helper->method('run')->will($this->returnValue('test-namespace-runner'));
         /** @var AbstractHelper $helper */
 
-        $resolver = new Resolver(function() use ($helper) {
+        $resolver = new Resolver(function () use ($helper) {
             return $helper;
         });
         $resolver->setNs(['test']);

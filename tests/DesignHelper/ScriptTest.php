@@ -57,13 +57,15 @@ class ScriptTest extends TestCase
         $helper->add('file-3.js');
 
         $scriptTags = $helper->render('bottom');
-        $expectedTags = "<script type=\"text/javascript\" src=\"file.js\"></script>\n<script type=\"text/javascript\" src=\"file-3.js\"></script>\n";
+        $expectedTags = "<script type=\"text/javascript\" src=\"file.js\"></script>\n";
+        $expectedTags .= "<script type=\"text/javascript\" src=\"file-3.js\"></script>\n";
         $this->assertSame($expectedTags, $scriptTags);
 
         $helper->setMode(Script::PRODUCTION);
 
         $scriptTags = $helper->render('bottom');
-        $expectedTags = "<script type=\"text/javascript\" src=\"file-2.js\"></script>\n<script type=\"text/javascript\" src=\"file-3.js\"></script>\n";
+        $expectedTags = "<script type=\"text/javascript\" src=\"file-2.js\"></script>\n";
+        $expectedTags .= "<script type=\"text/javascript\" src=\"file-3.js\"></script>\n";
         $this->assertSame($expectedTags, $scriptTags);
     }
 
@@ -80,7 +82,7 @@ class ScriptTest extends TestCase
         $helper->add('file-1.js');
         $helper->add('file-2.js');
 
-        $returnValue = $helper->render(function($script) {
+        $returnValue = $helper->render(function ($script) {
             return '[script ' . $script->src . "]\n";
         });
 

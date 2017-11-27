@@ -54,8 +54,11 @@ class LinkTest extends TestCase
         $helper->addCss('test.css');
         $helper->addCss('test-print.css', 'print');
 
+        $expectedHtml = "<link rel=\"stylesheet\" type=\"text/css\" href=\"test.css\" media=\"screen\" />\n";
+        $expectedHtml .= "<link rel=\"stylesheet\" type=\"text/css\" href=\"test-print.css\" media=\"print\" />\n";
+
         $this->assertSame(
-            "<link rel=\"stylesheet\" type=\"text/css\" href=\"test.css\" media=\"screen\" />\n<link rel=\"stylesheet\" type=\"text/css\" href=\"test-print.css\" media=\"print\" />\n",
+            $expectedHtml,
             (string) $helper
         );
     }
