@@ -3,23 +3,23 @@ namespace Blueprint\Helper;
 
 use Blueprint\TemplateInterface;
 
-abstract class AHelperInterface implements HelperInterface
+abstract class AbstractHelper implements HelperInterface
 {
-    protected $template_engine;
+    protected $templateEngine;
 
     public function setTemplate(TemplateInterface $template)
     {
-        $this->template_engine = $template;
+        $this->templateEngine = $template;
         return $this;
     }
 
-    public function getTemplate()
+    public function getTemplate(): TemplateInterface
     {
-        return $this->template_engine;
+        return $this->templateEngine;
     }
 
-    public function hasTemplate()
+    public function hasTemplate(): bool
     {
-        return $this->template_engine instanceof TemplateInterface;
+        return $this->templateEngine instanceof TemplateInterface;
     }
 }

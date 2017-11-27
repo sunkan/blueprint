@@ -2,17 +2,19 @@
 
 namespace Blueprint\Helper;
 
-use Aura\Di\Container as Di;
-use Blueprint\ITemplate;
+use Blueprint\Exception\HelperNotFoundException;
+use Blueprint\TemplateInterface;
 
-class Resolver implements IResolver
+class Resolver implements ResolverInterface
 {
     protected $map = [];
     protected $ns = [];
 
-    public function __construct(Di $di)
+    protected $resolver;
+
+    public function __construct(callable $resolver)
     {
-        $this->di = $di;
+        $this->resolver = $resolver;
     }
 
     public function setNs(array $ns)
@@ -25,38 +27,35 @@ class Resolver implements IResolver
         $this->ns[] = $ns;
     }
 
-    public function addClass(IHelper $class)
+    public function addClass(HelperInterface $class)
     {
         $this->map[$class->getName()] = $class;
     }
 
-    public function addFunction($key, $func)
+    public function addFunction($key, callable $func)
     {
-        $this->map[$key] = $func;
+        $this->map[$key] = new ClosureHelper($func);
     }
 
-    public function resolve($method, ITemplate $template)
+    public function resolve(string $method, TemplateInterface $template): HelperInterface
     {
-        if (isset($this->map[$method])) {
-            return $this->map[$method];
-        }
-        $found = false;
-        foreach (array_reverse($this->ns) as $ns) {
-            try {
-                $className = $ns.'\\'.ucfirst($method);
-                if (class_exists($className)) {
-                    $helper = $this->di->newInstance($className, [], ['setTemplate'=>$template]);
-                    $found = true;
+        if (!isset($this->map[$method])) {
+            $helper = null;
+            $resolver = $this->resolver;
+
+            foreach (array_reverse($this->ns) as $ns) {
+                $helper = $resolver($ns.'\\'.ucfirst($method));
+                if ($helper instanceof HelperInterface) {
+                    $helper->setTemplate($template);
                     break;
                 }
-            } catch (\Aura\Autoload\Exception\NotFound $e) {
-                $found = false;
             }
+            $this->map[$method] = $helper;
         }
-        if (!$found) {
-            $this->map[$method] = false;
-            return false;
+
+        if (!$this->map[$method]) {
+            throw new HelperNotFoundException("Could't find helper: ".$method);
         }
-        return $this->map[$method] = $helper;
+        return $this->map[$method];
     }
 }

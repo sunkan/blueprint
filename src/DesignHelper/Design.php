@@ -1,18 +1,29 @@
 <?php
 namespace Blueprint\DesignHelper;
 
-use Blueprint\Helper\AHelper;
+use Blueprint\FinderInterface;
+use Blueprint\Helper\AbstractHelper;
 
-class Design extends AHelper
+class Design extends AbstractHelper
 {
-    protected $type = false;
+    protected $type = null;
 
-    public function getName()
+    /**
+     * @var FinderInterface
+     */
+    protected $templateFinder;
+
+    public function __construct(FinderInterface $finder)
+    {
+        $this->templateFinder = $finder;
+    }
+
+    public function getName(): string
     {
         return 'design';
     }
 
-    public function run($args)
+    public function run(array $args)
     {
         $argc = count($args);
         if ($argc == 0) {
@@ -25,25 +36,21 @@ class Design extends AHelper
         $this->type = $type;
     }
 
-    public function header($file = false)
+    private function render($file, $type = null)
     {
-        if (!$file) {
-            $file = 'header';
-        }
-        $view = $this->template_engine;
-        $file .= ($this->type && $this->type != 'default' ? '.' . $this->type : '') . '.php';
-        $file = $view->getFilePath('layout/' . $file);
+        $view = $this->templateEngine;
+        $file = $this->templateFinder->findTemplate('layout/' . $file, $type ?? $this->type);
+
         return include $file;
     }
 
-    public function footer($file = false)
+    public function header(string $type = null)
     {
-        if (!$file) {
-            $file = 'footer';
-        }
-        $view = $this->template_engine;
-        $file .= ($this->type && $this->type != 'default' ? '.' . $this->type : '') . '.php';
-        $file = $view->getFilePath('layout/' . $file);
-        return include $file;
+        return $this->render('header', $type);
+    }
+
+    public function footer(string $type = null)
+    {
+        return $this->render('footer', $type);
     }
 }

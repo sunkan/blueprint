@@ -1,59 +1,43 @@
 <?php
 namespace Blueprint;
 
+use Blueprint\Helper\ResolverList;
+
 class Extended extends Simple
 {
-    protected $_template_file = null;
-    protected $_paths = [];
-    protected $_base = null;
+    /**
+     * @var FinderInterface
+     */
+    protected $templateFinder;
 
-    public function getFilePath($file)
+    /**
+     * @var string
+     */
+    protected $templateFile = null;
+
+    public function __construct(FinderInterface $finder, ResolverList $resolverList)
     {
-        if (strpos($file, '/') !== 0) {
-            foreach ($this->_paths as $path) {
-                $tmpFile = $path . $file;
-                if (file_exists($tmpFile)) {
-                    return $tmpFile;
-                }
-            }
-        }
-        return $file;
+        parent::__construct($resolverList);
+        $this->templateFinder = $finder;
+    }
+
+    public function setTemplateFinder(FinderInterface $finder)
+    {
+        $this->templateFinder = $finder;
     }
 
     public function setTemplate($tpl)
     {
-        $this->_template_file = $tpl;
+        $this->templateFile = $tpl;
     }
 
     public function getTemplate()
     {
-        return $this->_template_file;
+        return $this->templateFile;
     }
 
-    public function render($file = null)
+    public function render($file = null): string
     {
-        $file = $file ?: $this->_template_file;
-        $file = $this->getFilePath($file);
-        return parent::render($file);
-    }
-
-    public function addBasePath($path)
-    {
-        $this->_paths[] = $path;
-        return $this;
-    }
-
-    public function setBasePath($path)
-    {
-        $this->_paths = is_array($path) ? $path : [$path];
-    }
-
-    public function fetch($file)
-    {
-        if (strpos($file, '://') === false) {
-            $file = $this->getFilePath($file);
-            return \file_get_contents($file);
-        }
-        return \file_get_contents($file);
+        return parent::render($this->templateFinder->findTemplate($file ?? $this->templateFile));
     }
 }

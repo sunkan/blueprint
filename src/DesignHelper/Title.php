@@ -1,18 +1,18 @@
 <?php
 namespace Blueprint\DesignHelper;
 
-use Blueprint\Helper\AHelper;
+use Blueprint\Helper\AbstractHelper;
 
-class Title extends AHelper
+class Title extends AbstractHelper
 {
-    protected $_title = '';
+    protected $title = '';
 
-    public function getName()
+    public function getName(): string
     {
         return 'title';
     }
 
-    public function run($argv)
+    public function run(array $argv)
     {
         $argc = count($argv);
         if ($argc == 0) {
@@ -23,13 +23,13 @@ class Title extends AHelper
 
     public function set($spec)
     {
-        $this->_title = $spec;
+        $this->title = $spec;
         return $this;
     }
 
-    public function render($func = null)
+    public function render()
     {
-        return $this->_title;
+        return $this->title;
     }
 
     public function __toString()

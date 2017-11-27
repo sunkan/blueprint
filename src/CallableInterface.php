@@ -1,7 +1,7 @@
 <?php
 namespace Blueprint;
 
-interface ICallable
+interface CallableInterface
 {
     public function callHelper(string $method, array $args);
 }

@@ -2,44 +2,26 @@
 
 ## Installation
 
-To add this package as a local, per-project dependency to your project, simply add a dependency on `sunkan/blueprint` to your project's `composer.json` file. Here is a minimal example of a `composer.json` file that just defines a dependency on Text_Template:
 
-    {
-        "require": {
-            "sunkan/blueprint": "~1.*"
-        }
-    }
+The preferred method of installing this library is with
+[Composer](https://getcomposer.org/) by running the following from your project
+root:
+
+    $ composer require sunkan/blueprint
 
 ## Using
 
 ### Simple example
 
-With Aura.Di and Composer
+Without external dependencies
 
 ```php
-<!--index.php-->
-<?php
+//index.php
+$blueprint = new \Blueprint\Simple(new \Blueprint\Helper\ResolverList());
+$blueprint->name = 'Blueprint';
 
-include '../vendor/autoload.php';
-
-use Aura\Di\Container;
-use Aura\Di\Factory;
-
-$di = new Container(new Factory);
-
-$config = $di->newInstance('Blueprint\_Config\Common');
-$config->define($di);
-
-$base = __DIR__;
-$di->setter['Blueprint\Extended']['setBasePath'] = [
-    $base . '/tpls/'
-];
-
-$blueprint = $di->newInstance('Blueprint\Extended');
-$blueprint->name = "Blueprint test";
-
-echo $blueprint->render('index.php');
-
+//With the simple renderer youo have to add the complete path to template
+echo $blueprint->render('tpls/index.php');
 ```
 
 And the tpl file
@@ -52,16 +34,62 @@ And the tpl file
 </head>
 <body>
 <h1>Welcome: <?=$name?></h1>
+</body>
+</html>
+```
 
+### Example with template finder
+
+```php
+//index.php
+//if multiple directorys are specified they are search in lifo order
+$finder = new \Blueprint\DefaultFinder();
+$finder->addPath(__DIR__ . '/tpls/');
+
+$template = new \Blueprint\Extended(
+    $finder,
+    new \Blueprint\Helper\ResolverList()
+);
+$template->name = "Sunkan";
+
+//will include tpl from tpls/welcome.php
+$response = $template->render('welcome');
+
+//will include tpl from tpls/welcome.test.php
+$response = $template->render('welcome', 'test');
+
+echo $response;
+```
+
+And the tpl file
+
+```html
+<!--tpls/welcome.php-->
+<html>
+<head>
+<title>Index</title>
+</head>
+<body>
+<h1>Welcome: <?=$name?></h1>
 </body>
 </html>
 ```
 
 ### Layout example 1
 
-```
-<!--index.php-->
-Same as previews example
+
+```php
+//index.php
+//Same as previews example
+//But you need to add a resolver to find the helper classes
+
+$resolver = new \Blueprint\Helper\Resolver(function($cls) use ($finder) {
+    return new $cls($finder);
+});
+$resolver->addNs('Blueprint\DesignHelper');
+
+$blueprint->addResolver($resolver);
+
 ```
 
 And the tpl file
@@ -104,30 +132,23 @@ And the tpl file
 ### Layout example 2
 
 ```php
-<!--index.php-->
-<?php
+//index.php
+//if multiple directorys are specified they are search in lifo order
+$finder = new \Blueprint\DefaultFinder();
+$finder->addPath(__DIR__ . '/tpls/');
 
-include '../vendor/autoload.php';
+$resolver = new \Blueprint\Helper\Resolver(function($cls) use ($finder) {
+    return new $cls($finder);
+});
+$resolver->addNs('Blueprint\DesignHelper');
+$resolverList = new \Blueprint\Helper\ResolverList([$resolver]);
 
-use Aura\Di\Container;
-use Aura\Di\Factory;
-
-$di = new Container(new Factory);
-
-$config = $di->newInstance('Blueprint\_Config\Common');
-$config->define($di);
-
-$base = __DIR__;
-$di->setter['Blueprint\Extended']['setBasePath'] = [
-    $base . '/tpls/'
-];
-
-$content = $di->newInstance('Blueprint\Extended');
+$content = new \Blueprint\Extended($finder, $resolverList);
 $content->setTemplate('index.php');
 $content->name = "Sunkan";
 
-$blueprint = $di->newInstance('Blueprint\Layout');
-$blueprint->setTemplate('layout/main.php');
+$blueprint = new \Blueprint\Layout($finder, $resolverList);
+$blueprint->setTemplate('layout/main');
 $blueprint->setContent($content);
 
 echo $blueprint->render();

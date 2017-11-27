@@ -2,9 +2,9 @@
 
 namespace Blueprint\Helper;
 
-use Blueprint\ITemplate;
+use Blueprint\TemplateInterface;
 
-interface IResolver
+interface ResolverInterface
 {
-    public function resolve($method, ITemplate $template);
+    public function resolve(string $method, TemplateInterface $template): HelperInterface;
 }

@@ -3,7 +3,7 @@ namespace Blueprint\Helper;
 
 use Blueprint\TemplateInterface;
 
-interface IHelper
+interface HelperInterface
 {
     public function getName(): string;
     public function run(array $args);

@@ -1,11 +1,23 @@
 <?php
 namespace Blueprint\DesignHelper;
 
-use Blueprint\Helper\AHelper;
+use Blueprint\Helper\AbstractHelper;
 
-class Script extends AHelper
+class Script extends AbstractHelper
 {
-    public function getName()
+    const PRODUCTION = 'prod';
+    const DEVELOPMENT = 'dev';
+
+    private $mode = self::DEVELOPMENT;
+
+    protected $scripts = [];
+
+    protected $on = [
+        'load' => '',
+        'config' => ''
+    ];
+
+    public function getName(): string
     {
         return 'script';
     }
@@ -15,7 +27,7 @@ class Script extends AHelper
      * $argv[1] = type
      * $argv[2] = pos
      */
-    public function run($argv)
+    public function run(array $argv)
     {
         $argc = count($argv);
         if ($argc == 0) {
@@ -30,11 +42,11 @@ class Script extends AHelper
     public function add($src, $type = 'text/javascript', $pos = 'bottom')
     {
         $mode = false;
-        if ($type == 'dev') {
-            $mode = 'dev';
+        if ($type === self::DEVELOPMENT) {
+            $mode = self::DEVELOPMENT;
             $type = 'text/javascript';
-        } elseif ($type == 'prod') {
-            $mode = 'prod';
+        } elseif ($type === self::PRODUCTION) {
+            $mode = self::PRODUCTION;
             $type = 'text/javascript';
         }
         $obj = new \stdClass;
@@ -42,14 +54,10 @@ class Script extends AHelper
         $obj->type = $type;
         $obj->position = $pos;
         $obj->mode = $mode;
-        $this->_scripts[md5($src)] = $obj;
+        $this->scripts[md5($src)] = $obj;
 
         return $this;
     }
-    protected $on = [
-        'load' => '',
-        'config' => ''
-    ];
 
     public function start()
     {
@@ -65,7 +73,7 @@ class Script extends AHelper
 
     public function has($pos)
     {
-        $scripts = $this->_scripts;
+        $scripts = $this->scripts;
         $scripts = array_filter($scripts, function ($obj) use ($pos) {
             return ($obj->position == $pos);
         });
@@ -75,7 +83,7 @@ class Script extends AHelper
     public function get($pos)
     {
         $return = array();
-        foreach ($this->_scripts as $obj) {
+        foreach ($this->scripts as $obj) {
             if ($obj->position == $pos) {
                 $return[] = $obj->src;
             }
@@ -83,28 +91,36 @@ class Script extends AHelper
         return $return;
     }
 
+    public function setMode($mode)
+    {
+        if (!in_array($mode, [self::DEVELOPMENT, self::PRODUCTION])) {
+            throw new \InvalidArgumentException('Invalid mode');
+        }
+        $this->mode = $mode;
+    }
+
     public function render($func = null, $pos = 'all')
     {
         if (is_string($func) && !is_callable($func)) {
             $pos = strtolower($func);
         }
-        if ($pos=='onload') {
-            return $this->on['load'];
+        if (isset($this->on[substr($pos, 2)])) {
+            return $this->on[substr($pos, 2)];
         }
-        if ($pos=='onconfig') {
-            return $this->on['config'];
-        }
-        $scripts = $this->_scripts;
+        $scripts = $this->scripts;
         if ($pos != 'all') {
             $scripts = array_filter($scripts, function ($obj) use ($pos) {
                 return ($obj->position == $pos);
             });
         }
         if (!is_callable($func)) {
-            $engine = $this->template_engine;
-            $func = function ($obj) use ($engine) {
-                if ($obj->mode && $engine->site_mode != $obj->mode) {
-                    return '';
+            $func = function ($obj) {
+                if ($obj->mode) {
+                    if ($this->hasTemplate() && $this->getTemplate()->site_mode != $obj->mode) {
+                        return '';
+                    } elseif ($this->mode != $obj->mode) {
+                        return '';
+                    }
                 }
                 $tpl = '<script type="%s" src="%s"></script>'."\n";
                 return sprintf($tpl, $obj->type, $obj->src);
@@ -113,6 +129,4 @@ class Script extends AHelper
 
         return implode("", array_map($func, $scripts));
     }
-
-    protected $_scripts = array();
 }

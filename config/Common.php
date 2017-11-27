@@ -12,7 +12,9 @@ class Common extends Config
     public function define(Container $di)
     {
         if (!isset($di->params['Blueprint\Helper\Resolver'])) {
-            $di->params['Blueprint\Helper\Resolver']['di'] = $di;
+            $di->params['Blueprint\Helper\Resolver']['resolver'] = function ($cls) use ($di) {
+                return $di->newInstance($cls);
+            };
         }
         if (isset($di->setter['Blueprint\Helper\Resolver']['setNs'])) {
             array_unshift($di->setter['Blueprint\Helper\Resolver']['setNs'], 'Blueprint\DesignHelper');

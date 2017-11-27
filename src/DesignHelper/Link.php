@@ -1,18 +1,18 @@
 <?php
 namespace Blueprint\DesignHelper;
 
-use Blueprint\Helper\AHelper;
+use Blueprint\Helper\AbstractHelper;
 
-class Link extends AHelper
+class Link extends AbstractHelper
 {
-    protected $_link = [];
+    protected $links = [];
 
-    public function getName()
+    public function getName(): string
     {
         return 'link';
     }
 
-    public function run($args)
+    public function run(array $args)
     {
         $argc = count($args);
         if ($argc == 0) {
@@ -23,16 +23,17 @@ class Link extends AHelper
 
     public function add($spec)
     {
-        $this->_link[] = $spec;
+        $this->links[] = $spec;
 
         return $this;
     }
 
     public function set($spec)
     {
-        foreach ($this->_link as $link) {
+        for ($count = count($this->links)-1; $count >= 0; $count--) {
+            $link = $this->links[$count];
             if ($link['rel'] == $spec['rel']) {
-                unset($link);
+                unset($this->links[$count]);
             }
         }
         $this->add($spec);
@@ -41,7 +42,7 @@ class Link extends AHelper
     public function get($type)
     {
         $return = array();
-        foreach ($this->_link as $obj) {
+        foreach ($this->links as $obj) {
             if ($obj['type'] == $type) {
                 $return[] = $obj['href'];
             }
@@ -71,8 +72,8 @@ class Link extends AHelper
     {
         if ($func === null) {
             $func = function ($obj) {
-                $tpl = '<link %s />'."\n";
-                $tpl2 = ' %s="%s" ';
+                $tpl = '<link %s/>'."\n";
+                $tpl2 = '%s="%s" ';
                 $str = '';
                 foreach ($obj as $key => $value) {
                     $str .= sprintf($tpl2, $key, $value);
@@ -80,7 +81,7 @@ class Link extends AHelper
                 return sprintf($tpl, $str);
             };
         }
-        return implode('', array_map($func, $this->_link));
+        return implode('', array_map($func, $this->links));
     }
 
     public function __toString()
